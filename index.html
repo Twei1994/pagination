@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/dot/2.0.0-beta.0/doT.min.js"></script>
+
+    <title>Pagination Example</title>
+</head>
+<body>
+    <div style="text-align: center; margin-top: 200px;">
+        <nav aria-label="Page navigation">
+            <ul class="pagination" id="pagination"></ul>
+        </nav>
+    </div>
+
+    <script type="text/x-dot-template" id="pageTemplate">
+        <li id="previous" onclick="changePage(-1)">
+            <a href="#" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+
+        {{ for(var i = it.start; i <= it.end; i++) { }}
+            <li onclick="loadPage({{=i}})"><a href="#">{{=i}}</a></li>
+        {{ } }}
+
+        <li id="next" onclick="changePage(1)">
+            <a href="#" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </script>
+
+    <script>
+        let pageLength = 5, curPage = 1, halfLength = Math.floor(pageLength/2), totalPage = 0;
+
+        $(document).ready(function () {
+           loadPageInfo();
+        });
+
+        function loadPageInfo() {
+            // data from backend
+            totalPage = 6;
+
+            let data = getStartEnd(totalPage);
+
+            let pageInfo = doT.template($("#pageTemplate").text());
+            $("#pagination").html(pageInfo(data));
+            activePage();
+        }
+
+        function getStartEnd(totalPage) {
+            let start, end = 0;
+            if (totalPage <= pageLength) {
+                start = 1;
+                end = totalPage;
+            } else {
+                if (curPage-halfLength <= 0) {
+                    start = 1;
+                    end = pageLength;
+                } else if (curPage+halfLength > totalPage) {
+                    start = totalPage-pageLength+1;
+                    end = totalPage;
+                } else {
+                    start = curPage-halfLength;
+                    end = curPage+halfLength+pageLength%2-1;
+                }
+            }
+            return {"start":start, "end":end};
+        }
+
+        // 上一页，下一页
+        function changePage(page) {
+            curPage += page;
+            loadPageInfo();
+        }
+
+        // 第几页
+        function loadPage(page) {
+            curPage = page;
+            loadPageInfo();
+        }
+
+        function activePage() {
+            if (curPage === 1) {
+                $("#previous").addClass("disabled").removeAttr("onclick");
+            }
+            if (curPage === totalPage) {
+                $("#next").addClass("disabled").removeAttr("onclick");
+            }
+            $("#pagination li a").each(function() {
+                if (curPage == $(this).text()) {
+                    $(this).parent().addClass("active");
+                }
+            })
+        }
+    </script>
+</body>
+</html>
